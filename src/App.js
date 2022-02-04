@@ -1,9 +1,10 @@
 import React, { useEffect, useState, Suspense } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { useAspect, RoundedBox, Text, Billboard, Environment } from "@react-three/drei";
 import { Intro } from "./Intro";
 import * as THREE from 'three'
 import { Flex, Box } from "@react-three/flex";
+import { useSpring, animated } from '@react-spring/three'
 
 const Layout = () => (
   <Flex justifyContent="center" alignItems="center" flexDirection="row">
@@ -104,11 +105,38 @@ function Scene() {
   );
 }
 
+const Marquee = () => {
+
+  const textRef = React.useRef();
+
+  const props = useSpring({number: 0, from: {number: 20}});
+
+
+  //console.log(textRef.current);
+  useFrame( () => {
+    const xPos = textRef.current.position.x;
+    const textWidth = textRef.current.geometry.boundingBox.max.x;
+    const offset = (textWidth !== Infinity)? textWidth : 0;
+    textRef.current.position.x =  (xPos < -window.screen.width/2 - offset ) ? window.screen.width/2 + offset: xPos - 5;
+  });
+
+  return (
+    <Suspense>
+     <RoundedBox args={[window.screen.width, 80, 0]} radius={5} smoothness={4} position={[0,-window.screen.height/2 + 90, 0]}>
+          <meshBasicMaterial color="purple" />
+        </RoundedBox>
+      <Text ref={textRef} color="#f3f3f3" anchorY="middle" fontSize={25} position={[0,-window.screen.height/2 + 90, 0]}>
+        Tune in at 5:00 pm EST every Wednesday.
+        </Text>
+      </Suspense>
+  )
+}
 export default function App() {
   return (
     <Intro>
       <Canvas orthographic linear camera={{ position: [0, 0, 200] }}>
         <Grid />
+        <Marquee/>
       </Canvas>
     </Intro>
   );
