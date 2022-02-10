@@ -1,74 +1,55 @@
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useRef, useEffect, useState, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useAspect, RoundedBox, Text, Billboard, Environment } from "@react-three/drei";
+import { useAspect, useCursor, RoundedBox, Text, Billboard, Environment, GradientTexture, MeshDistortMaterial } from "@react-three/drei";
 import { Intro } from "./Intro";
 import * as THREE from 'three'
 import { Flex, Box } from "@react-three/flex";
 import { useSpring, animated } from '@react-spring/three'
 
-
-
-const Layout = () => (
-  <Flex justifyContent="center" alignItems="center" flexDirection="row">
-    <Box centerAnchor>
-      <Scene />
-    </Box>
-    <Box centerAnchor marginLeft={20} flexGrow={1}>
-      <Scene />
-    </Box>
-  </Flex>
-);
-
+function Flag(props) {
+  const ref = useRef()
+  const [hovered, hover] = useState(false)
+  useCursor(hovered)
+  useFrame(() => {
+    ref.current.distort = THREE.MathUtils.lerp(ref.current.distort, hovered ? 0.4 : 0, hovered ? 0.05 : 0.01)
+  })
+  return (
+    <mesh onPointerOver={() => hover(true)} onPointerOut={() => hover(false)} onClick={props.onClick} scale={[100, 100, 1]}>
+        <planeGeometry args={[1, 1, 10, 10]} />
+      <MeshDistortMaterial ref={ref} speed={5}>
+        <GradientTexture stops={[0, 0.8, 1]} colors={['#e63946', '#f1faee', '#a8dadc']} size={200} />
+      </MeshDistortMaterial>
+      <Text color="#f3f3f3" anchorX="center" anchorY="middle" fontSize={0.2}>
+        {props.name}
+      </Text>
+    </mesh>
+  )
+}
 const LayoutN = (props) => (
   [...Array(props.number)].map((e,i) => <Box grow={1} key={i}>
       <Scene />
      </Box>)
 );
 
-const Grid = () => (
-  <Flex plane="xy" justifyContent="center" alignItems="center" flexDirection="column" position={[0,0,0]} size={[0.5,0.5,0]}>
-    <Box centerAnchor>
-      <Layout />
-    </Box>
-    <Box centerAnchor flexGrow={1} marginTop={20}>
-      <Layout />
-    </Box>
-    <Box centerAnchor marginTop={20}>
-      <Suspense>
-        <RoundedBox args={[200, 80, 0]} radius={5} smoothness={4}>
-          <meshBasicMaterial color="royalblue" />
-        </RoundedBox>
-        <Text color="#f3f3f3" anchorX="center" anchorY="middle" fontSize={25}>
-          Vodcast
-        </Text>
-      </Suspense>
-    </Box>
-  </Flex>
-);
-
 const GridN = (props) => {
   const { size } = useThree();
   const [vpWidth, vpHeight] = useAspect(size.width, size.height);
   const vec = new THREE.Vector3();
-  // useFrame(() =>
-  //   group.current.position.lerp(vec.set(0, state.top / 100, 0), 0.1)
-  // );
   const [counter, setCounter] = useState(props.number);
-  const increment = () => (console.log(counter));
-  const decrement = () => {setCounter(prevCounter => prevCounter - 1)};
+  const increment = () => (setCounter(prevCounter => prevCounter + 1));
+  const decrement = () => (setCounter(prevCounter => prevCounter - 1));
 
   return (
     <Flex flexDirection="row"
         size={[vpWidth, vpHeight, 0]}
-        //onReflow={handleReflow}
         justifyContent="space-evenly"
         position={[-vpWidth / 3, vpHeight / 4, 0]}
       >
       <Box dir="row" width="50%" height="100%" wrap="wrap">
         <LayoutN number={counter}/>
-        <Button name="Increment" onClick={increment}/>
-        <Button name="Decrement" onClick={decrement}/>
-      </Box>
+            </Box>
+      <Button name="Increment" onClick={(event) => increment()}/>
+      <Button name="Decrement" onClick={(event) => decrement()}/>
     </Flex>
   )
 };
@@ -77,60 +58,17 @@ const GridN = (props) => {
 const Button = (props) => (
   <Box grow={1}>
     <Suspense>
-      <RoundedBox args={[200,80, 0]} radius={5} smoothness={4} onClick={props.onClick}>
-        <meshBasicMaterial color="royalblue" />
+      <RoundedBox args={[200,80, 0]} radius={20} smoothness={4} onClick={props.onClick}>
+        <meshBasicMaterial>
+          <GradientTexture stops={[0,1]} colors={['#ff0000', '#00ff00']} size={500} />
+        </meshBasicMaterial>
       </RoundedBox>
       <Text color="#f3f3f3" anchorX="center" anchorY="middle" fontSize={25}>
-          {props.name}
+        {props.name}
       </Text>
     </Suspense>
   </Box>
 );
-
-function setupVideo() {
-  const video = document.createElement('video');
-
-  var playing = false;
-  var timeupdate = false;
-
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(function (stream) {
-      /* use the stream */
-      video.srcObject = stream;
-    })
-    .catch(function (err) {
-      /* handle the error */
-    });
-
-  video.autoplay = true;
-  video.muted = true;
-  video.loop = true;
-
-  // Waiting for these 2 events ensures
-  // there is data in the video
-
-  video.addEventListener('playing', function () {
-    playing = true;
-    checkReady();
-  }, true);
-
-  video.addEventListener('timeupdate', function () {
-    timeupdate = true;
-    checkReady();
-  }, true);
-
-  // video.src = url;
-  video.play();
-
-
-  function checkReady() {
-    if (playing && timeupdate) {
-      copyVideo = true;
-    }
-  }
-
-  return video;
-}
 
 function Scene() {
   const size = useAspect(1280, 720, 0.15);
@@ -157,7 +95,6 @@ function Scene() {
 const Marquee = () => {
 
   const textRef = React.useRef();
-
   const props = useSpring({number: 0, from: {number: 20}});
 
 
@@ -186,6 +123,7 @@ export default function App() {
   return (
     <Intro>
       <Canvas orthographic linear camera={{ position: [0, 0, 200] }}>
+        <Stats showPanel={0} className="stats" {...props} />
         <GridN number={6} />
         <Marquee/>
       </Canvas>
