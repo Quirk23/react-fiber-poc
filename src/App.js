@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useAspect, useCursor, RoundedBox, Text, Billboard, Environment, GradientTexture, MeshDistortMaterial } from "@react-three/drei";
+import { useAspect, useCursor, RoundedBox, Text, Billboard, Environment, GradientTexture, MeshDistortMaterial, meshPhongMaterial, Stats } from "@react-three/drei";
 import { Intro } from "./Intro";
 import * as THREE from 'three'
 import { Flex, Box } from "@react-three/flex";
@@ -84,6 +84,12 @@ function Scene() {
   useEffect(() => void video.play(), [video]);
   return (
     <mesh scale={size}>
+      <RoundedBox args={[0.25, 0.25, 0]} radius={0.05} smoothness={4} position={[0.3,0.3,1]} >
+        <meshBasicMaterial attach="material" color="royalblue" />
+        <Text anchorX="center" anchorY="middle" fontSize={0.08} >
+          wow
+        </Text>
+      </RoundedBox>
       <planeBufferGeometry />
       <meshBasicMaterial>
         <videoTexture attach="map" args={[video]} />
@@ -123,7 +129,7 @@ export default function App() {
   return (
     <Intro>
       <Canvas orthographic linear camera={{ position: [0, 0, 200] }}>
-        <Stats showPanel={0} className="stats" {...props} />
+        <Stats showPanel={0} />
         <GridN number={6} />
         <Marquee/>
       </Canvas>
