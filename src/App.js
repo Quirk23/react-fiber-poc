@@ -6,38 +6,20 @@ import * as THREE from 'three'
 import { Flex, Box } from "@react-three/flex";
 import { useSpring, animated } from '@react-spring/three'
 
-function Flag(props) {
-  const ref = useRef()
-  const [hovered, hover] = useState(false)
-  useCursor(hovered)
-  useFrame(() => {
-    ref.current.distort = THREE.MathUtils.lerp(ref.current.distort, hovered ? 0.4 : 0, hovered ? 0.05 : 0.01)
-  })
-  return (
-    <mesh onPointerOver={() => hover(true)} onPointerOut={() => hover(false)} onClick={props.onClick} scale={[100, 100, 1]}>
-        <planeGeometry args={[1, 1, 10, 10]} />
-      <MeshDistortMaterial ref={ref} speed={5}>
-        <GradientTexture stops={[0, 0.8, 1]} colors={['#e63946', '#f1faee', '#a8dadc']} size={200} />
-      </MeshDistortMaterial>
-      <Text color="#f3f3f3" anchorX="center" anchorY="middle" fontSize={0.2}>
-        {props.name}
-      </Text>
-    </mesh>
-  )
-}
 const LayoutN = (props) => (
   [...Array(props.number)].map((e,i) => <Box grow={1} key={i}>
       <Scene />
      </Box>)
 );
 
+
 const GridN = (props) => {
   const { size } = useThree();
   const [vpWidth, vpHeight] = useAspect(size.width, size.height);
   const vec = new THREE.Vector3();
   const [counter, setCounter] = useState(props.number);
-  const increment = () => (setCounter(prevCounter => prevCounter + 1));
-  const decrement = () => (setCounter(prevCounter => prevCounter - 1));
+  const increment = () => (setCounter(counter + 1));
+  const decrement = () => (setCounter(counter - 1));
 
   return (
     <Flex flexDirection="row"
@@ -54,21 +36,29 @@ const GridN = (props) => {
   )
 };
 
+const Button = (props) => {
 
-const Button = (props) => (
-  <Box grow={1}>
-    <Suspense>
-      <RoundedBox args={[200,80, 0]} radius={20} smoothness={4} onClick={props.onClick}>
-        <meshBasicMaterial>
-          <GradientTexture stops={[0,1]} colors={['#ff0000', '#00ff00']} size={500} />
-        </meshBasicMaterial>
-      </RoundedBox>
-      <Text color="#f3f3f3" anchorX="center" anchorY="middle" fontSize={25}>
-        {props.name}
-      </Text>
-    </Suspense>
-  </Box>
-);
+  const size = useAspect(1280, 720, 0.1);
+  return (
+    <Box grow={1} onClick={props.onClick}>
+      <mesh scale={size} >
+        <RoundedBox args={[0.9, 0.9, 0]} radius={0.05} smoothness={4} position={[0,0,1]} >
+          <planeGeometry />
+          <meshBasicMaterial>
+            <GradientTexture
+              stops={[0, 1]} // As many stops as you want
+              colors={['aquamarine', 'hotpink']} // Colors need to match the number of stops
+              size={1024} // Size is optional, default = 1024
+            />
+          </meshBasicMaterial>
+          <Text anchorX="center" anchorY="middle" fontSize={0.2} >
+            {props.name}
+          </Text>
+        </RoundedBox>
+      </mesh>
+    </Box>
+  )
+};
 
 function Scene() {
   const size = useAspect(1280, 720, 0.15);
